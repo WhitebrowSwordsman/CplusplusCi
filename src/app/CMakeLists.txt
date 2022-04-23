@@ -42,4 +42,4 @@ add_executable(${project_name} ${app_src})
 target_link_libraries(${project_name} ${common_name})
 
 # Set this property in the same directory as a project() command call (e.g. in the top-level CMakeLists.txt file) to specify the default startup project for the corresponding solution file.
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${project_name})
+set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${project_name})

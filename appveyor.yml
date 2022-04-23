@@ -1,7 +1,7 @@
 # version string format -- This will be overwritten later anyway
 version: "{build}"
 
-os:
+image:
   - Visual Studio 2019
   - Visual Studio 2022
 
@@ -13,27 +13,76 @@ init:
 install:
   - git submodule update --init --recursive
 
+# Environment variables that are set by AppVeyor for every build:
+# PLATFORM - platform name set on Build tab of project settings (or through platform parameter in appveyor.yml)
 # Win32 and x64 are CMake-compatible solution platform names.
 # This allows us to pass %PLATFORM% to CMake -A.
 platform:
   - Win32
   - x64
 
+# Environment variables that are set by AppVeyor for every build:
+# CONFIGURATION - configuration name set on Build tab of project settings (or through configuration parameter in appveyor.yml)
 # build Configurations, i.e. Debug, Release, etc.
 configuration:
-  - Debug
   - Release
 
-#Cmake will autodetect the compiler, but we set the arch
+# Cmake will autodetect the compiler, but we set the arch
 before_build:
-  - cmake -S . -B build -A%PLATFORM%
+  - ps: |
+      $Env:QT5DIR = 'C:\Qt\5.15.2\msvc2019'
+      Write-Host "PLATFORM is $Env:PLATFORM"
+      if ($Env:PLATFORM -eq "x64")
+      {
+        $Env:QT5DIR = 'C:\Qt\5.15.2\msvc2019_64'
+      }
+  - cmake -S . -B "build\%APPVEYOR_BUILD_WORKER_IMAGE%-%PLATFORM%-%CONFIGURATION%" -A%PLATFORM% -DWINDOWS:BOOL=ON -DCMAKE_PREFIX_PATH=%QT5DIR% -DQT_DLL_DIR="%QT5DIR%\bin"
 
 # build with MSBuild
 build:
-  project: build\CplusplusCi.sln        # path to Visual Studio solution or project
+  project: build\%APPVEYOR_BUILD_WORKER_IMAGE%-%PLATFORM%-%CONFIGURATION%\CplusplusCi.sln        # path to Visual Studio solution or project
   parallel: true                        # enable MSBuild parallel builds
   verbosity: normal                     # MSBuild verbosity level {quiet|minimal|normal|detailed}
 
-#test_script:
-#  - cd Build
-#  - ctest -V -j 2 -C %CONFIGURATION%
+# Skipping commits affecting specific files (GitHub only). More details here: /docs/appveyor-yml
+skip_commits:
+  files:
+    - .gitignore
+    - docs/*
+    - LICENSE
+    - generate_qt_osx_project.sh
+    - generate_qt_vs_project.bat
+    - generate_qt_vs_project.sh
+    - README.md
+
+# test_script:
+#   - cd Build
+#   - ctest -V -j 2 -C %CONFIGURATION%
+
+#---------------------------------#
+#      artifacts configuration    #
+#---------------------------------#
+artifacts:
+  # pushing entire folder as a zip archive
+  - path: build\%APPVEYOR_BUILD_WORKER_IMAGE%-%PLATFORM%-%CONFIGURATION%\bin\$(configuration)
+    name: '$(APPVEYOR_PROJECT_NAME)_$(APPVEYOR_BUILD_WORKER_IMAGE)-$(platform)-$(configuration)_$(APPVEYOR_BUILD_VERSION)'
+
+#---------------------------------#
+#     deployment configuration    #
+#---------------------------------#
+# providers: Local, FTP, WebDeploy, AzureCS, AzureBlob, S3, NuGet, Environment
+# provider names are case-sensitive!
+deploy:
+    # Deploy to GitHub Releases
+  - provider: GitHub
+    auth_token: 
+      secure: BP8xy4Gn7gP1tHzSzq4NBkpgTy57ocpUI+x81q3AMebqh8e9D2doSFT/CleTPnR3
+    artifact: /.*\.zip/           # upload all NuGet packages to release assets
+    draft: false
+    prerelease: false
+    description: "describe the plugin here (mandatory - added later)"
+    on:
+      branch: main                # release from main branch only
+      configuration: Release    # Debug contains non-redist MS DLLs
+      APPVEYOR_REPO_TAG: true       # deploy on tag push only
+
