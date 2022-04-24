@@ -36,4 +36,5 @@ cmake --build ./build --config Release
 - https://github.com/LearningByExample/ModernCppCI/
 - https://cmake.org/
 - https://www.appveyor.com/docs/lang/cpp/
+- https://ci.appveyor.com/tools/validate-yaml
 

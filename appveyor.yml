@@ -2,8 +2,9 @@
 version: "{build}"
 
 image:
+  # windows: only build vs2019
   - Visual Studio 2019
-  - Visual Studio 2022
+  # - Visual Studio 2022 
 
 init:
   - git config --global core.autocrlf input
