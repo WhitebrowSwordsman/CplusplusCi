@@ -4,22 +4,34 @@ version: "{build}"
 image:
   # windows: only build vs2019
   - Visual Studio 2019
-  # - Visual Studio 2022 
+  # - Visual Studio 2022
+  - Ubuntu
+  - macos-bigsur
 
 init:
-  - git config --global core.autocrlf input
+  - ps: git config --global core.autocrlf input
   # Set build version to git commit-hash
   - ps: Update-AppveyorBuild -Version "$($env:APPVEYOR_REPO_BRANCH) - $($env:APPVEYOR_REPO_COMMIT)"
 
 install:
-  - git submodule update --init --recursive
+  - ps: git submodule update --init --recursive
+  - ps: |
+      if ($isWindows) {
+        Write-Host "This is Windows!"
+      } elseif ($isLinux) {
+        Write-Host "This is Linux!"
+        sudo apt -y install mesa-common-dev libglu1-mesa-dev
+      } else {
+        Write-Host "This is NOT a Linux or a Windows!"
+      }
+  # - sh: sudo apt -y install mesa-common-dev libglu1-mesa-dev
 
 # Environment variables that are set by AppVeyor for every build:
 # PLATFORM - platform name set on Build tab of project settings (or through platform parameter in appveyor.yml)
 # Win32 and x64 are CMake-compatible solution platform names.
 # This allows us to pass %PLATFORM% to CMake -A.
 platform:
-  - Win32
+  # - Win32
   - x64
 
 # Environment variables that are set by AppVeyor for every build:
@@ -31,13 +43,23 @@ configuration:
 # Cmake will autodetect the compiler, but we set the arch
 before_build:
   - ps: |
-      $Env:QT5DIR = 'C:\Qt\5.15.2\msvc2019'
-      Write-Host "PLATFORM is $Env:PLATFORM"
-      if ($Env:PLATFORM -eq "x64")
-      {
-        $Env:QT5DIR = 'C:\Qt\5.15.2\msvc2019_64'
+      if ($isWindows) {
+        Write-Host "This is Windows!"
+        $Env:QT5DIR = 'C:\Qt\5.15.2\msvc2019'
+        Write-Host "PLATFORM is $Env:PLATFORM"
+        if ($Env:PLATFORM -eq "x64")
+        {
+          $Env:QT5DIR = 'C:\Qt\5.15.2\msvc2019_64'
+        }
+      } elseif ($isLinux) {
+        Write-Host "This is Linux!"
+        $Env:QT5DIR = "$Env:HOME/Qt/5.15.2/gcc_64"
+      } else {
+        Write-Host "This is NOT a Linux or a Windows!"
+        $Env:QT5DIR = "$Env:HOME/Qt/5.15.2/clang_64"
       }
-  - cmake -S . -B "build\%APPVEYOR_BUILD_WORKER_IMAGE%-%PLATFORM%-%CONFIGURATION%" -A%PLATFORM% -DWINDOWS:BOOL=ON -DCMAKE_PREFIX_PATH=%QT5DIR% -DQT_DLL_DIR="%QT5DIR%\bin"
+  - cmd: cmake -S . -B "build\%APPVEYOR_BUILD_WORKER_IMAGE%-%PLATFORM%-%CONFIGURATION%" -A%PLATFORM% -DWINDOWS:BOOL=ON -DCMAKE_PREFIX_PATH=%QT5DIR% -DQT_DLL_DIR="%QT5DIR%\bin"
+  - sh: cmake -S . -B "build/${APPVEYOR_BUILD_WORKER_IMAGE}-${PLATFORM}-${CONFIGURATION}" -DCMAKE_PREFIX_PATH=${QT5DIR}
 
 # build with MSBuild
 # build:
@@ -46,7 +68,8 @@ before_build:
 #   verbosity: normal                     # MSBuild verbosity level {quiet|minimal|normal|detailed}
 
 build_script:
-  - cmd: cmake --build "build\%APPVEYOR_BUILD_WORKER_IMAGE%-%PLATFORM%-%CONFIGURATION%" -v
+  - cmd: cmake --build "build\%APPVEYOR_BUILD_WORKER_IMAGE%-%PLATFORM%-%CONFIGURATION%" -v --config %CONFIGURATION%"
+  - sh: cmake --build "build/${APPVEYOR_BUILD_WORKER_IMAGE}-${PLATFORM}-${CONFIGURATION}" -v --config ${CONFIGURATION}
 
 # Skipping commits affecting specific files (GitHub only). More details here: /docs/appveyor-yml
 skip_commits:
@@ -68,7 +91,7 @@ skip_commits:
 #---------------------------------#
 artifacts:
   # pushing entire folder as a zip archive
-  - path: build\%APPVEYOR_BUILD_WORKER_IMAGE%-%PLATFORM%-%CONFIGURATION%\bin\$(configuration)
+  - path: build\$(APPVEYOR_BUILD_WORKER_IMAGE)-$(platform)-$(configuration)\bin\$(configuration)
     name: '$(APPVEYOR_PROJECT_NAME)_$(APPVEYOR_BUILD_WORKER_IMAGE)-$(platform)-$(configuration)_$(APPVEYOR_BUILD_VERSION)'
 
 #---------------------------------#
@@ -86,6 +109,7 @@ deploy:
     prerelease: false
     description: "describe the plugin here (mandatory - added later)"
     on:
+      image: Visual Studio 2019
       branch: main                # release from main branch only
       configuration: Release    # Debug contains non-redist MS DLLs
       APPVEYOR_REPO_TAG: true       # deploy on tag push only
