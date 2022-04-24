@@ -40,10 +40,13 @@ before_build:
   - cmake -S . -B "build\%APPVEYOR_BUILD_WORKER_IMAGE%-%PLATFORM%-%CONFIGURATION%" -A%PLATFORM% -DWINDOWS:BOOL=ON -DCMAKE_PREFIX_PATH=%QT5DIR% -DQT_DLL_DIR="%QT5DIR%\bin"
 
 # build with MSBuild
-build:
-  project: build\%APPVEYOR_BUILD_WORKER_IMAGE%-%PLATFORM%-%CONFIGURATION%\CplusplusCi.sln        # path to Visual Studio solution or project
-  parallel: true                        # enable MSBuild parallel builds
-  verbosity: normal                     # MSBuild verbosity level {quiet|minimal|normal|detailed}
+# build:
+#   project: build\%APPVEYOR_BUILD_WORKER_IMAGE%-%PLATFORM%-%CONFIGURATION%\CplusplusCi.sln        # path to Visual Studio solution or project
+#   parallel: true                        # enable MSBuild parallel builds
+#   verbosity: normal                     # MSBuild verbosity level {quiet|minimal|normal|detailed}
+
+build_script:
+  - cmd: cmake --build "build\%APPVEYOR_BUILD_WORKER_IMAGE%-%PLATFORM%-%CONFIGURATION%" -v
 
 # Skipping commits affecting specific files (GitHub only). More details here: /docs/appveyor-yml
 skip_commits:
