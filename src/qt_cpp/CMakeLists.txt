@@ -24,13 +24,15 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets LinguistTools)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Network LinguistTools)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Network LinguistTools)
 
 include(TranslationUtils)
 include(${CMAKE_CURRENT_SOURCE_DIR}/../base/cmake/base.cmake)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../base/include)
+# Network include
+include_directories(${Qt5Network_INCLUDE_DIRS})
 
 set(TS_DIR_NAME i18n)
 set(TS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${TS_DIR_NAME}")
@@ -75,7 +77,7 @@ else()
         )
 endif()
 
-target_link_libraries(${project_name} PRIVATE Qt${QT_VERSION_MAJOR}::Widgets ${common_name})
+target_link_libraries(${project_name} PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Network ${common_name})
 
 set_target_properties(${project_name} PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
@@ -90,17 +92,15 @@ if(QT_VERSION_MAJOR EQUAL 6)
 endif()
 
 if(WINDOWS)
-  list(APPEND qt_dll_lists "Qt5Core" "Qt5Gui" "Qt5Widgets" "Qt5WinExtras" "Qt5Concurrent")
-  #file(GLOB plugins_platforms_debug_dlls
-  #  "${QT_DLL_DIR}/../plugins/platforms/*d.dll"
-  #)
+  list(APPEND qt_dll_lists "Qt5Core" "Qt5Gui" "Qt5Widgets" "Qt5WinExtras" "Qt5Concurrent" "Qt5Network")
   file(COPY ${MY_PUBLIC_HEADERS} DESTINATION myDestination)
   if ("$ENV{APPVEYOR}" STREQUAL "")
     foreach(qt_dll_name IN LISTS qt_dll_lists)
       file(COPY ${QT_DLL_DIR}/${qt_dll_name}d.dll DESTINATION "${CMAKE_BINARY_DIR}/bin/Debug")
+      file(COPY ${QT_DLL_DIR}/${qt_dll_name}d.pdb DESTINATION "${CMAKE_BINARY_DIR}/bin/Debug")
     endforeach()
-    #file(COPY ${plugins_platforms_debug_dlls} DESTINATION "${CMAKE_BINARY_DIR}/bin/Debug/plugins/platforms/")
     file(COPY "${QT_DLL_DIR}/../plugins/platforms/qwindowsd.dll" DESTINATION "${CMAKE_BINARY_DIR}/bin/Debug/plugins/platforms/")
+    file(COPY "${QT_DLL_DIR}/../plugins/platforms/qwindowsd.pdb" DESTINATION "${CMAKE_BINARY_DIR}/bin/Debug/plugins/platforms/")
   endif()
   foreach(qt_dll_name IN LISTS qt_dll_lists)
     file(COPY ${QT_DLL_DIR}/${qt_dll_name}.dll DESTINATION "${CMAKE_BINARY_DIR}/bin/Release")

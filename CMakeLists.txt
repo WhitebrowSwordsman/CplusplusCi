@@ -16,6 +16,4 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 message(STATUS "QtDir is ${CMAKE_PREFIX_PATH}")
 
-add_subdirectory(src/base)
-add_subdirectory(src/app)
-add_subdirectory(src/qt_cpp)
+add_subdirectory(src)
