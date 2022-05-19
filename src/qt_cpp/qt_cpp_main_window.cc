@@ -2,24 +2,26 @@
 
 #include <QCoreApplication>
 #include <QDebug>
+#include <QImageWriter>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QStatusBar>
 #include <QToolBar>
 
 #include "base/base.h"
+#include "tests/image_test/image_test_window.h"
+#include "tests/scribble/scribble_window.h"
 
 QtCppMainWindow::QtCppMainWindow(QWidget* parent) : QMainWindow(parent) {
-  setupUi();
+  SetupUi();
   setWindowTitle(tr("qt_cpp_app"));
 
-  connect(action_about_, &QAction::triggered, this, &QtCppMainWindow::OnAbout);
-  connect(action_exit_, &QAction::triggered, this, &QtCppMainWindow::OnExit);
+  Init();
 }
 
 QtCppMainWindow::~QtCppMainWindow() {}
 
-void QtCppMainWindow::setupUi() {
+void QtCppMainWindow::SetupUi() {
   if (this->objectName().isEmpty()) this->setObjectName(QString::fromUtf8("QtCppMainWindow"));
   this->resize(800, 600);
   QWidget* central_widget = new QWidget(this);
@@ -50,23 +52,60 @@ void QtCppMainWindow::setupUi() {
   icon_exit.addFile(QString::fromUtf8(":/images/exit.png"), QSize(), QIcon::Normal, QIcon::Off);
   action_exit_->setIcon(icon_exit);
 
-  QMenu* menuHelp = new QMenu(menubar);
-  menuHelp->setObjectName(QString::fromUtf8("menuHelp"));
-  menuHelp->setTitle(tr("Help"));
+  QMenu* menu_help = new QMenu(menubar);
+  menu_help->setObjectName(QString::fromUtf8("menuHelp"));
+  menu_help->setTitle(tr("Help"));
 
-  menubar->addAction(menuHelp->menuAction());
-  menuHelp->addAction(action_about_);
-  menuHelp->addSeparator();
-  menuHelp->addAction(action_exit_);
+  menubar->addAction(menu_help->menuAction());
+  menu_help->addAction(action_about_);
+  menu_help->addSeparator();
+  menu_help->addAction(action_exit_);
 
   tool_bar->addAction(action_about_);
   tool_bar->addSeparator();
   tool_bar->addAction(action_exit_);
+
+  menu_window_ = new QMenu(menubar);
+  menu_window_->setTitle("window");
+  menubar->insertAction(menu_help->menuAction(), menu_window_->menuAction());
+  CreateImageTestWindowAction();
+  CreateScribbleWindowAction();
+}
+
+void QtCppMainWindow::Init() {
+  connect(action_about_, &QAction::triggered, this, &QtCppMainWindow::OnAbout);
+  connect(action_exit_, &QAction::triggered, this, &QtCppMainWindow::OnExit);
+}
+
+void QtCppMainWindow::CreateImageTestWindowAction() {
+  QAction* action = new QAction(this);
+  action->setText("ImageTestWindow");
+  menu_window_->addAction(action);
+  connect(action, &QAction::triggered, [&]() {
+    ImageTestWindow* image_test = new ImageTestWindow();
+    image_test->show();
+  });
+}
+
+void QtCppMainWindow::CreateScribbleWindowAction() {
+  QAction* action = new QAction(this);
+  action->setText("ScribbleWindow");
+  menu_window_->addAction(action);
+  connect(action, &QAction::triggered, [&]() {
+    ScribbleWindow* scribble = new ScribbleWindow();
+    scribble->show();
+  });
 }
 
 void QtCppMainWindow::OnAbout() {
   qDebug() << "";
   QMessageBox::about(this, tr("qt_cpp_app"), QString("<b>QtCppApp</b> : base version is %1").arg(BASE::GetVersion()));
+
+  const QList<QByteArray> imageFormats = QImageWriter::supportedImageFormats();
+  for (const QByteArray& format : imageFormats) {
+    QString text = tr("%1...").arg(QString(format).toUpper());
+    qDebug() << "imageFormats" << text;
+  }
 }
 void QtCppMainWindow::OnExit() {
   qDebug() << "";

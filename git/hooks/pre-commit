@@ -1,0 +1,36 @@
+#!/bin/sh
+#
+# An example hook script to verify what is about to be committed.
+# Called by "git commit" with no arguments.  The hook should
+# exit with non-zero status after issuing an appropriate message if
+# it wants to stop the commit.
+#
+# To enable this hook, rename this file to "pre-commit".
+
+if git rev-parse --verify HEAD >/dev/null 2>&1
+then
+  against=HEAD
+else
+  # Initial commit: diff against an empty tree object
+  against=$(git hash-object -t tree /dev/null)
+fi
+
+# Redirect output to stderr.
+exec 1>&2
+
+bash_dir="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+
+cpplint_script=${bash_dir}/../../tools/cpplint/spplint.py
+sum=0
+#filters='-build/include_order,-build/namespaces,-legal/copyright,-runtime/references'
+echo ${cpplint_script}
+
+for file in $(git diff-index --name-status $against); do
+  echo ${file}
+done
+
+for file in $(git diff-index --name-status $against -- | grep -E '^\.(h|cc|cpp)$' | awk '{print $2}'); do
+  echo ${file}
+	#$cpplint --filter=$filters $file
+  #sum=$(expr ${sum} + $?)
+done

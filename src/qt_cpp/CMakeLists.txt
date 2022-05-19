@@ -63,7 +63,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
 
     qt_create_translation(QM_FILES ${CMAKE_CURRENT_SOURCE_DIR} ${TS_FILES})
 else()
-    qt5_create_translation(QM_FILES ${CMAKE_CURRENT_SOURCE_DIR} ${TS_FILES})
+    # qt5_create_translation(QM_FILES ${CMAKE_CURRENT_SOURCE_DIR} ${TS_FILES})
 
     message(STATUS "qm files ${QM_FILES}")
     
@@ -92,6 +92,7 @@ if(QT_VERSION_MAJOR EQUAL 6)
 endif()
 
 if(WINDOWS)
+  file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/images/mandrill_512.png" DESTINATION "${CMAKE_BINARY_DIR}/bin/Debug/images")
   list(APPEND qt_dll_lists "Qt5Core" "Qt5Gui" "Qt5Widgets" "Qt5WinExtras" "Qt5Concurrent" "Qt5Network")
   file(COPY ${MY_PUBLIC_HEADERS} DESTINATION myDestination)
   if ("$ENV{APPVEYOR}" STREQUAL "")
