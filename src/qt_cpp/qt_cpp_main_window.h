@@ -18,6 +18,7 @@ class QtCppMainWindow : public QMainWindow {
 
   void CreateImageTestWindowAction();
   void CreateScribbleWindowAction();
+  void CreateAnalogClockAction();
 
  private slots:
   void OnAbout();

@@ -9,6 +9,7 @@
 #include <QToolBar>
 
 #include "base/base.h"
+#include "tests/analog_clock/analog_clock.h"
 #include "tests/image_test/image_test_window.h"
 #include "tests/scribble/scribble_window.h"
 
@@ -70,6 +71,7 @@ void QtCppMainWindow::SetupUi() {
   menubar->insertAction(menu_help->menuAction(), menu_window_->menuAction());
   CreateImageTestWindowAction();
   CreateScribbleWindowAction();
+  CreateAnalogClockAction();
 }
 
 void QtCppMainWindow::Init() {
@@ -94,6 +96,16 @@ void QtCppMainWindow::CreateScribbleWindowAction() {
   connect(action, &QAction::triggered, [&]() {
     ScribbleWindow* scribble = new ScribbleWindow();
     scribble->show();
+  });
+}
+
+void QtCppMainWindow::CreateAnalogClockAction() {
+  QAction* action = new QAction(this);
+  action->setText("AnalogClock");
+  menu_window_->addAction(action);
+  connect(action, &QAction::triggered, [&]() {
+    AnalogClock* clock = new AnalogClock();
+    clock->show();
   });
 }
 
