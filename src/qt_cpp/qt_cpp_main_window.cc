@@ -12,6 +12,7 @@
 #include "tests/analog_clock/analog_clock.h"
 #include "tests/image_test/image_test_window.h"
 #include "tests/scribble/scribble_window.h"
+#include "tests/webui/webui.h"
 
 QtCppMainWindow::QtCppMainWindow(QWidget* parent) : QMainWindow(parent) {
   SetupUi();
@@ -72,6 +73,7 @@ void QtCppMainWindow::SetupUi() {
   CreateImageTestWindowAction();
   CreateScribbleWindowAction();
   CreateAnalogClockAction();
+  CreateWebuiAction();
 }
 
 void QtCppMainWindow::Init() {
@@ -106,6 +108,16 @@ void QtCppMainWindow::CreateAnalogClockAction() {
   connect(action, &QAction::triggered, [&]() {
     AnalogClock* clock = new AnalogClock();
     clock->show();
+  });
+}
+
+void QtCppMainWindow::CreateWebuiAction() {
+  QAction* action = new QAction(this);
+  action->setText("Webui");
+  menu_window_->addAction(action);
+  connect(action, &QAction::triggered, [&]() {
+    Webui* webui = new Webui();
+    webui->show();
   });
 }
 

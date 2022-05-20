@@ -19,6 +19,7 @@ class QtCppMainWindow : public QMainWindow {
   void CreateImageTestWindowAction();
   void CreateScribbleWindowAction();
   void CreateAnalogClockAction();
+  void CreateWebuiAction();
 
  private slots:
   void OnAbout();

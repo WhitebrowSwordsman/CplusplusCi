@@ -24,8 +24,8 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Network LinguistTools)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Network LinguistTools)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Network WebEngineCore WebEngine WebEngineWidgets LinguistTools)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Network WebEngineCore WebEngine WebEngineWidgets LinguistTools)
 
 include(TranslationUtils)
 include(${CMAKE_CURRENT_SOURCE_DIR}/../base/cmake/base.cmake)
@@ -33,6 +33,9 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/../base/cmake/base.cmake)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../base/include)
 # Network include
 include_directories(${Qt5Network_INCLUDE_DIRS})
+include_directories(${Qt5WebEngineCore_INCLUDE_DIRS})
+include_directories(${Qt5WebEngine_INCLUDE_DIRS})
+include_directories(${Qt5WebEngineWidgets_INCLUDE_DIRS})
 
 set(TS_DIR_NAME i18n)
 set(TS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${TS_DIR_NAME}")
@@ -77,7 +80,13 @@ else()
         )
 endif()
 
-target_link_libraries(${project_name} PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Network ${common_name})
+target_link_libraries(${project_name} PRIVATE 
+    Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::Network
+    Qt${QT_VERSION_MAJOR}::WebEngineCore
+    Qt${QT_VERSION_MAJOR}::WebEngine
+    Qt${QT_VERSION_MAJOR}::WebEngineWidgets
+    ${common_name})
 
 set_target_properties(${project_name} PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
@@ -93,7 +102,11 @@ endif()
 
 if(WINDOWS)
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/images/mandrill_512.png" DESTINATION "${CMAKE_BINARY_DIR}/bin/Debug/images")
-  list(APPEND qt_dll_lists "Qt5Core" "Qt5Gui" "Qt5Widgets" "Qt5WinExtras" "Qt5Concurrent" "Qt5Network")
+  list(APPEND qt_dll_lists "Qt5Core" "Qt5Gui" "Qt5Widgets" "Qt5WinExtras" 
+      "Qt5Concurrent" 
+      "Qt5Network" 
+      "Qt5WebEngineCore" "Qt5WebEngine" "Qt5WebEngineWidgets" "Qt5Quick" "Qt5QuickWidgets" "Qt5PrintSupport" "Qt5Positioning" "Qt5WebChannel" "Qt5Qml" "Qt5QmlModels"
+      )
   file(COPY ${MY_PUBLIC_HEADERS} DESTINATION myDestination)
   if ("$ENV{APPVEYOR}" STREQUAL "")
     foreach(qt_dll_name IN LISTS qt_dll_lists)
@@ -102,16 +115,21 @@ if(WINDOWS)
     endforeach()
     file(COPY "${QT_DLL_DIR}/../plugins/platforms/qwindowsd.dll" DESTINATION "${CMAKE_BINARY_DIR}/bin/Debug/plugins/platforms/")
     file(COPY "${QT_DLL_DIR}/../plugins/platforms/qwindowsd.pdb" DESTINATION "${CMAKE_BINARY_DIR}/bin/Debug/plugins/platforms/")
+    file(COPY "${QT_DLL_DIR}/QtWebEngineProcessd.exe" DESTINATION "${CMAKE_BINARY_DIR}/bin/Debug/")
+    file(COPY "${QT_DLL_DIR}/QtWebEngineProcessd.pdb" DESTINATION "${CMAKE_BINARY_DIR}/bin/Debug/")
+    file(COPY "${QT_DLL_DIR}/../resources/icudtl.dat" DESTINATION "${CMAKE_BINARY_DIR}/bin/Debug/resources/")
+    file(COPY "${QT_DLL_DIR}/../resources/qtwebengine_resources.pak" DESTINATION "${CMAKE_BINARY_DIR}/bin/Debug/resources/")
+    file(COPY "${QT_DLL_DIR}/../translations/qtwebengine_locales" DESTINATION "${CMAKE_BINARY_DIR}/bin/Debug/translations/")
   endif()
   foreach(qt_dll_name IN LISTS qt_dll_lists)
     file(COPY ${QT_DLL_DIR}/${qt_dll_name}.dll DESTINATION "${CMAKE_BINARY_DIR}/bin/Release")
   endforeach()
-  #file(GLOB plugins_platforms_release_dlls
-  #  "${QT_DLL_DIR}/../plugins/platforms/*.dll"
-  #)
-  #list(REMOVE_ITEM plugins_platforms_release_dlls ${plugins_platforms_debug_dlls})
-  #file(COPY ${plugins_platforms_release_dlls} DESTINATION "${CMAKE_BINARY_DIR}/bin/Release/plugins/platforms/")
   file(COPY "${QT_DLL_DIR}/../plugins/platforms/qwindows.dll" DESTINATION "${CMAKE_BINARY_DIR}/bin/Release/plugins/platforms/")
-  
+  file(COPY ${QT_DLL_DIR}/QtWebEngineProcess.exe DESTINATION "${CMAKE_BINARY_DIR}/bin/Release/")
+  file(COPY ${QT_DLL_DIR}/../resources/icudtl.dat DESTINATION "${CMAKE_BINARY_DIR}/bin/Release/resources/")
+  file(COPY ${QT_DLL_DIR}/../resources/qtwebengine_resources.pak DESTINATION "${CMAKE_BINARY_DIR}/bin/Release/resources/")
+  file(COPY ${QT_DLL_DIR}/../resources/qtwebengine_resources_100p.pak DESTINATION "${CMAKE_BINARY_DIR}/bin/Release/resources/")
+  file(COPY ${QT_DLL_DIR}/../resources/qtwebengine_resources_200p.pak DESTINATION "${CMAKE_BINARY_DIR}/bin/Release/resources/")
+  file(COPY ${QT_DLL_DIR}/../translations/qtwebengine_locales DESTINATION "${CMAKE_BINARY_DIR}/bin/Release/translations/")
   set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${project_name})
 endif()

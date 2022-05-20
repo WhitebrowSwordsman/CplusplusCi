@@ -2,5 +2,9 @@
     <qresource prefix="/">
         <file>images/exit.png</file>
         <file>images/info.png</file>
+        <file>tests/webui/about.html</file>
+        <file>tests/webui/index.html</file>
+        <file>tests/webui/icon.svg</file>
+        <file>tests/webui/style.css</file>
     </qresource>
 </RCC>

@@ -2,9 +2,9 @@
 version: "{build}"
 
 image:
-  # windows: only build vs2019
-  - Visual Studio 2019
-  # - Visual Studio 2022
+  # windows: only build vs2022
+  # - Visual Studio 2019
+  - Visual Studio 2022
   - Ubuntu
   - macos-bigsur
 
@@ -68,7 +68,7 @@ before_build:
 #   verbosity: normal                     # MSBuild verbosity level {quiet|minimal|normal|detailed}
 
 build_script:
-  - cmd: cmake --build "build\%APPVEYOR_BUILD_WORKER_IMAGE%-%PLATFORM%-%CONFIGURATION%" -v --config %CONFIGURATION%"
+  - cmd: cmake --build "build\%APPVEYOR_BUILD_WORKER_IMAGE%-%PLATFORM%-%CONFIGURATION%" -v --config %CONFIGURATION%
   - sh: cmake --build "build/${APPVEYOR_BUILD_WORKER_IMAGE}-${PLATFORM}-${CONFIGURATION}" -v --config ${CONFIGURATION}
 
 # Skipping commits affecting specific files (GitHub only). More details here: /docs/appveyor-yml
