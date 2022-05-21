@@ -14,7 +14,81 @@ set(CMAKE_CONFIGURATION_TYPES Debug Release)
 # Separate multiple Projects and put them into folders which are on top-level.
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+# How do I make CMake output into a 'bin' dir?
+#   The correct variable to set is CMAKE_RUNTIME_OUTPUT_DIRECTORY.
+#   We use the following in our root CMakeLists.txt:
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
 message(STATUS "QtDir is ${CMAKE_PREFIX_PATH}")
+
+if(NOT DEFINED CPLUSPLUS_CI_VERSION_MAJOR)
+  set(CPLUSPLUS_CI_VERSION_MAJOR "999")
+endif()
+if(NOT DEFINED CPLUSPLUS_CI_VERSION_MINOR)
+  set(CPLUSPLUS_CI_VERSION_MINOR "999")
+endif()
+if(NOT DEFINED CPLUSPLUS_CI_VERSION_PATCH)
+  set(CPLUSPLUS_CI_VERSION_PATCH "999")
+endif()
+message(STATUS "Cplusplus ci version is ${CPLUSPLUS_CI_VERSION_MAJOR}.${CPLUSPLUS_CI_VERSION_MINOR}.${CPLUSPLUS_CI_VERSION_PATCH}")
 
 add_subdirectory(tools)
 add_subdirectory(src)
+
+include(InstallRequiredSystemLibraries)
+
+set(ci_app_name "QtCppApp")
+
+set(CPACK_PACKAGE_NAME ${ci_app_name})
+set(CPACK_PACKAGE_VENDOR "Whitebrow")
+# set(CPACK_PACKAGE_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+set(CPACK_PACKAGE_VERSION_MAJOR ${CPLUSPLUS_CI_VERSION_MAJOR})
+set(CPACK_PACKAGE_VERSION_MINOR ${CPLUSPLUS_CI_VERSION_MINOR})
+set(CPACK_PACKAGE_VERSION_PATCH ${CPLUSPLUS_CI_VERSION_PATCH})
+set(CPACK_PACKAGE_DESCRIPTION "Cplusplus CI")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${ci_app_name}")
+if ("$ENV{APPVEYOR}" STREQUAL "")
+  if(WIN32 AND NOT UNIX)
+    set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}Installer-${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}-${CMAKE_GENERATOR_PLATFORM}")
+  endif()
+else()
+  set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}Installer-$ENV{APPVEYOR_REPO_TAG_NAME}-$ENV{APPVEYOR_BUILD_NUMBER}-${CMAKE_GENERATOR_PLATFORM}")
+endif()
+set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/pack/readme.txt")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "${ci_app_name}")
+# set(CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/pack/install.ico")
+set(CPACK_PROJECT_CONFIG_FILE "${CMAKE_CURRENT_SOURCE_DIR}/pack/package.txt")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/pack/copyright.txt")
+set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/pack/readme.txt")
+set(CPACK_RESOURCE_FILE_WELCOME "${CMAKE_CURRENT_SOURCE_DIR}/pack/welcome.txt")
+set(CPACK_GENERATOR "ZIP")
+set(CPACK_PACKAGE_EXECUTABLES "qt_cpp_app" "QtApp")
+set(CPACK_CREATE_DESKTOP_LINKS qt_cpp_app)
+
+set(CPACK_OUTPUT_FILE_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/build/package")
+set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
+set(CPACK_INSTALL_DEFAULT_DIRECTORY_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+
+if(WIN32 AND NOT UNIX)
+  # There is a bug in NSI that does not handle full UNIX paths properly.
+  # Make sure there is at least one set of four backlashes.
+  set(CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}\\\\pack\\\\install.ico")
+  set(CPACK_NSIS_MUI_UNIICON "${CMAKE_CURRENT_SOURCE_DIR}\\\\pack\\\\uninstall.ico")
+  set(CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\qt_cpp_app.exe")
+  set(CPACK_NSIS_DISPLAY_NAME ${ci_app_name})
+  set(CPACK_NSIS_HELP_LINK "http:\\\\\\\\github.com")
+  set(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\github.com")
+  set(CPACK_NSIS_CONTACT "knief@gmail.com")
+  set(CPACK_NSIS_MODIFY_PATH ON)
+  set(CPACK_NSIS_EXECUTABLES_DIRECTORY "bin")
+  set(CPACK_NSIS_MENU_LINKS 
+      "doc/help.html" "Qt App Help"
+      "https://github.com/WhitebrowSwordsman/CplusplusCi" "Cpluplus Ci Web Site")
+else()
+  set(CPACK_STRIP_FILES "bin/qt_cpp_app")
+  set(CPACK_SOURCE_STRIP_FILES)
+endif()
+include(CPack)
+

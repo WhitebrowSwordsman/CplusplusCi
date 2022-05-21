@@ -7,7 +7,9 @@
 
 int main(int argc, char *argv[]) {
   QApplication a(argc, argv);
-
+#if defined(WIN32)
+  a.setWindowIcon(QIcon(":/icons/window.ico"));
+#endif
   QTranslator translator;
   const QStringList uiLanguages = QLocale::system().uiLanguages();
   for (const QString &locale : uiLanguages) {

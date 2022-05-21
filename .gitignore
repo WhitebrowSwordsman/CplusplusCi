@@ -77,3 +77,5 @@ Thumbs.db
 # Other
 build/
 
+/_CPack_Packages/
+

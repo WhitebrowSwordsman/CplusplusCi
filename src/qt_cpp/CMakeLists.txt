@@ -50,6 +50,10 @@ file(GLOB_RECURSE PROJECT_SOURCES
     )
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${PROJECT_SOURCES})
 
+if(WIN32)
+    set(WIN_RES "${CMAKE_CURRENT_SOURCE_DIR}/win/resource.h" "${CMAKE_CURRENT_SOURCE_DIR}/win/app.rc")
+endif()
+
 list(APPEND PROJECT_SOURCES 
     ${project_name}.qrc
     )
@@ -77,6 +81,7 @@ else()
             ${PROJECT_SOURCES}
             ${APP_RES}
             ${QT_RES}
+            ${WIN_RES}
         )
 endif()
 
@@ -107,7 +112,8 @@ if(WINDOWS)
       "Qt5Network" 
       "Qt5WebEngineCore" "Qt5WebEngine" "Qt5WebEngineWidgets" "Qt5Quick" "Qt5QuickWidgets" "Qt5PrintSupport" "Qt5Positioning" "Qt5WebChannel" "Qt5Qml" "Qt5QmlModels"
       )
-  file(COPY ${MY_PUBLIC_HEADERS} DESTINATION myDestination)
+  
+  # Debug configuration, copy qt runtime to bin
   if ("$ENV{APPVEYOR}" STREQUAL "")
     foreach(qt_dll_name IN LISTS qt_dll_lists)
       file(COPY ${QT_DLL_DIR}/${qt_dll_name}d.dll DESTINATION "${CMAKE_BINARY_DIR}/bin/Debug")
@@ -121,15 +127,76 @@ if(WINDOWS)
     file(COPY "${QT_DLL_DIR}/../resources/qtwebengine_resources.pak" DESTINATION "${CMAKE_BINARY_DIR}/bin/Debug/resources/")
     file(COPY "${QT_DLL_DIR}/../translations/qtwebengine_locales" DESTINATION "${CMAKE_BINARY_DIR}/bin/Debug/translations/")
   endif()
+
+  # Copy qt runtime to windeploy
+  set(deploy_tmp_dir "${CMAKE_BINARY_DIR}/windeploy")
   foreach(qt_dll_name IN LISTS qt_dll_lists)
-    file(COPY ${QT_DLL_DIR}/${qt_dll_name}.dll DESTINATION "${CMAKE_BINARY_DIR}/bin/Release")
+    file(COPY ${QT_DLL_DIR}/${qt_dll_name}.dll DESTINATION "${deploy_tmp_dir}")
   endforeach()
-  file(COPY "${QT_DLL_DIR}/../plugins/platforms/qwindows.dll" DESTINATION "${CMAKE_BINARY_DIR}/bin/Release/plugins/platforms/")
-  file(COPY ${QT_DLL_DIR}/QtWebEngineProcess.exe DESTINATION "${CMAKE_BINARY_DIR}/bin/Release/")
-  file(COPY ${QT_DLL_DIR}/../resources/icudtl.dat DESTINATION "${CMAKE_BINARY_DIR}/bin/Release/resources/")
-  file(COPY ${QT_DLL_DIR}/../resources/qtwebengine_resources.pak DESTINATION "${CMAKE_BINARY_DIR}/bin/Release/resources/")
-  file(COPY ${QT_DLL_DIR}/../resources/qtwebengine_resources_100p.pak DESTINATION "${CMAKE_BINARY_DIR}/bin/Release/resources/")
-  file(COPY ${QT_DLL_DIR}/../resources/qtwebengine_resources_200p.pak DESTINATION "${CMAKE_BINARY_DIR}/bin/Release/resources/")
-  file(COPY ${QT_DLL_DIR}/../translations/qtwebengine_locales DESTINATION "${CMAKE_BINARY_DIR}/bin/Release/translations/")
+  file(COPY "${QT_DLL_DIR}/../plugins/platforms/qwindows.dll" DESTINATION "${deploy_tmp_dir}/plugins/platforms/")
+  file(COPY ${QT_DLL_DIR}/QtWebEngineProcess.exe DESTINATION "${deploy_tmp_dir}/")
+  file(COPY ${QT_DLL_DIR}/../resources/icudtl.dat DESTINATION "${deploy_tmp_dir}/resources/")
+  file(COPY ${QT_DLL_DIR}/../resources/qtwebengine_resources.pak DESTINATION "${deploy_tmp_dir}/resources/")
+  file(COPY ${QT_DLL_DIR}/../resources/qtwebengine_resources_100p.pak DESTINATION "${deploy_tmp_dir}/resources/")
+  file(COPY ${QT_DLL_DIR}/../resources/qtwebengine_resources_200p.pak DESTINATION "${deploy_tmp_dir}/resources/")
+  file(COPY ${QT_DLL_DIR}/../translations/qtwebengine_locales DESTINATION "${deploy_tmp_dir}/translations/")
+
+  # Release configuration, copy qt runtime to bin
+  file(COPY "${deploy_tmp_dir}/" DESTINATION "${CMAKE_BINARY_DIR}/bin/Release/")
+
+  # Copy doc
+  file(COPY "${CMAKE_SOURCE_DIR}/pack/doc" DESTINATION "${deploy_tmp_dir}/")
+
   set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${project_name})
+endif()
+
+if(OFF)
+# windeployqt usage
+if(Qt5_FOUND AND WIN32 AND TARGET Qt5::qmake AND NOT TARGET Qt5::windeployqt)
+    get_target_property(_qt5_qmake_location Qt5::qmake IMPORTED_LOCATION)
+
+    execute_process(
+        COMMAND "${_qt5_qmake_location}" -query QT_INSTALL_PREFIX
+        RESULT_VARIABLE return_code
+        OUTPUT_VARIABLE qt5_install_prefix
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+
+    set(windeployqt_path "${qt5_install_prefix}/bin/windeployqt.exe")
+    set(imported_location ${windeployqt_path})
+
+    if(EXISTS ${imported_location})
+        add_executable(Qt5::windeployqt IMPORTED)
+
+        set_target_properties(Qt5::windeployqt PROPERTIES
+            IMPORTED_LOCATION ${imported_location}
+        )
+
+        if(TARGET Qt5::windeployqt)
+            # execute windeployqt in a tmp directory after build
+            add_custom_command(TARGET ${project_name}
+                POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E remove_directory "${CMAKE_CURRENT_BINARY_DIR}/windeployqt"
+                COMMAND set PATH=%PATH%$<SEMICOLON>${qt5_install_prefix}/bin
+                COMMAND Qt5::windeployqt --dir "${CMAKE_CURRENT_BINARY_DIR}/windeployqt" "$<TARGET_FILE_DIR:${project_name}>/$<TARGET_FILE_NAME:${project_name}>"
+            )
+        endif()
+    endif()
+endif()
+endif()
+
+if(EXISTS ${deploy_tmp_dir})
+  # copy deployment directory during installation
+  install(
+      DIRECTORY "${deploy_tmp_dir}/"
+      CONFIGURATIONS Release
+      DESTINATION bin
+  )
+endif()
+
+if(WINDOWS)
+install(TARGETS ${project_name}
+  CONFIGURATIONS Release
+  RUNTIME DESTINATION bin
+  )
 endif()

@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
+        <file>icons/window.ico</file>
         <file>images/exit.png</file>
         <file>images/info.png</file>
         <file>tests/webui/about.html</file>

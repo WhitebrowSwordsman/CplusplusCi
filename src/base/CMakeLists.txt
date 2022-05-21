@@ -82,6 +82,12 @@ if (BASE_BUILD_SHARED_LIBS)
       VALID_ARCHS[variant=Debug] "arm64 armv7 x86_64"
     )
   endif()
+  if(WINDOWS)
+  install(TARGETS ${shared_lib}
+      CONFIGURATIONS Release
+      RUNTIME DESTINATION bin
+      )
+  endif()
 endif()
 if (BASE_BUILD_STATIC_LIBS)
   set(static_lib ${project_name}_static)

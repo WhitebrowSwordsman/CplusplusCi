@@ -71,15 +71,23 @@ build_script:
   - cmd: cmake --build "build\%APPVEYOR_BUILD_WORKER_IMAGE%-%PLATFORM%-%CONFIGURATION%" -v --config %CONFIGURATION%
   - sh: cmake --build "build/${APPVEYOR_BUILD_WORKER_IMAGE}-${PLATFORM}-${CONFIGURATION}" -v --config ${CONFIGURATION}
 
+after_build:
+  - cmd: cpack -G NSIS -C Release --config "build\%APPVEYOR_BUILD_WORKER_IMAGE%-%PLATFORM%-%CONFIGURATION%\CPackConfig.cmake" --verbose
+
 # Skipping commits affecting specific files (GitHub only). More details here: /docs/appveyor-yml
 skip_commits:
   files:
     - .gitignore
     - docs/*
-    - LICENSE
+    - git/*
+    - pack/*
+    - tools/*
+    - build_release.bat
+    - build_release.sh
     - generate_qt_osx_project.sh
     - generate_qt_vs_project.bat
     - generate_qt_vs_project.sh
+    - LICENSE
     - README.md
 
 # test_script:
@@ -91,8 +99,8 @@ skip_commits:
 #---------------------------------#
 artifacts:
   # pushing entire folder as a zip archive
-  - path: build\$(APPVEYOR_BUILD_WORKER_IMAGE)-$(platform)-$(configuration)\bin\$(configuration)
-    name: '$(APPVEYOR_PROJECT_NAME)_$(APPVEYOR_BUILD_WORKER_IMAGE)-$(platform)-$(configuration)_$(APPVEYOR_BUILD_VERSION)'
+  - path: 'build\package\*.*'
+    type: File
 
 #---------------------------------#
 #     deployment configuration    #
@@ -104,13 +112,12 @@ deploy:
   - provider: GitHub
     auth_token: 
       secure: BP8xy4Gn7gP1tHzSzq4NBkpgTy57ocpUI+x81q3AMebqh8e9D2doSFT/CleTPnR3
-    artifact: /.*\.zip/           # upload all NuGet packages to release assets
+    artifact: /.*\.exe/           # upload all NuGet packages to release assets
     draft: false
     prerelease: false
     description: "describe the plugin here (mandatory - added later)"
     on:
-      image: Visual Studio 2019
       branch: main                # release from main branch only
       configuration: Release    # Debug contains non-redist MS DLLs
-      APPVEYOR_REPO_TAG: true       # deploy on tag push only
+      APPVEYOR_REPO_TAG: true        # deploy on tag push only
 
