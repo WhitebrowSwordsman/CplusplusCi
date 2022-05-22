@@ -6,6 +6,10 @@
 #include "qt_cpp_main_window.h"
 
 int main(int argc, char *argv[]) {
+  QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);   // DPI support
+  QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);  // HiDPI pixmaps
+  QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
+
   QApplication a(argc, argv);
 #if defined(WIN32)
   a.setWindowIcon(QIcon(":/icons/window.ico"));

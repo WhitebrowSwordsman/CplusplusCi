@@ -14,6 +14,10 @@ class WebView : public QWebEngineView {
   void contextMenuEvent(QContextMenuEvent *event) override;
 
  private:
+  void Init();
+
+ private:
+  QMap<QString, QString> spell_check_languages_;
 };
 
 }  // namespace webui
