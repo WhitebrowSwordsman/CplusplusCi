@@ -1,0 +1,1 @@
+# generate qt app script

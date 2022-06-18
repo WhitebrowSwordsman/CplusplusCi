@@ -2,8 +2,9 @@
 
 add_subdirectory(base)
 add_subdirectory(app)
+add_subdirectory(qt)
 
-if ("${CMAKE_PREFIX_PATH}" STREQUAL "")
+if("${CMAKE_PREFIX_PATH}" STREQUAL "")
 else()
   if(WINDOWS AND "${QT_DLL_DIR}" STREQUAL "")
   else()
