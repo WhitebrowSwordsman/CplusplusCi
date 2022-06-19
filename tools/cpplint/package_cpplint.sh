@@ -35,8 +35,9 @@ if [[ $? != 0 ]]; then
 fi
 
 cpplint_script=${bash_dir}/src/cpplint.py
-cpplint_spec_dir=${bash_dir}/dist
-pyinstaller --specpath ${cpplint_spec_dir} --onefile ${cpplint_script}
+cpplint_dist_dir=${bash_dir}/dist
+cpplint_spec_dir=${cpplint_dist_dir}
+pyinstaller --specpath ${cpplint_spec_dir} --distpath ${cpplint_dist_dir} --onefile ${cpplint_script}
 if [[ $? != 0 ]]; then
   echo "package cpplint failed"
   exit 1

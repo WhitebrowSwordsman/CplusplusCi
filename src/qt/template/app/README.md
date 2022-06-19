@@ -1,1 +1,1 @@
-# qt app template
+# qt template_name app

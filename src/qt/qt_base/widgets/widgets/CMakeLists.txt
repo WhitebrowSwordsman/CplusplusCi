@@ -1,3 +1,3 @@
 # widgets
 
-# add_subdirectory(widgets)
+add_subdirectory(elided_label)

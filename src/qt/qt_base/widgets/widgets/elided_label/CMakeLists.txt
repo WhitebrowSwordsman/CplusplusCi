@@ -1,12 +1,12 @@
-# Created by %username% on %date%.
+# Created by WhitebrowSwordsman on 2022/06/19.
 #
-# Copyright (c) %year% The %TemplateName% Authors. All rights reserved.
+# Copyright (c) 2022 The ElidedLabel Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
 cmake_minimum_required(VERSION 3.16)
 
-set(project_name template_name_app)
+set(project_name elided_label_app)
 project(${project_name} VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -113,4 +113,4 @@ if(WINDOWS)
     )
 endif()
 
-set_target_properties(${project_name} PROPERTIES FOLDER "qt")
+set_target_properties(${project_name} PROPERTIES FOLDER "qt/qt_base/widgets/widgets")
