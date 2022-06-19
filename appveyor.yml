@@ -87,6 +87,7 @@ skip_commits:
     - generate_qt_osx_project.sh
     - generate_qt_vs_project.bat
     - generate_qt_vs_project.sh
+    - init.sh
     - LICENSE
     - README.md
 
