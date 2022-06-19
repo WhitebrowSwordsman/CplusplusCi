@@ -20,17 +20,19 @@ exec 1>&2
 
 bash_dir="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
-cpplint_script=${bash_dir}/../../tools/cpplint/spplint.py
+# check cpplint
+cpplint_cmd=${bash_dir}/../../tools/cpplint/dist/cpplint
+
 sum=0
-#filters='-build/include_order,-build/namespaces,-legal/copyright,-runtime/references'
-echo ${cpplint_script}
-
-for file in $(git diff-index --name-status $against); do
+cpplint_filters='-build/include,-whitespace/comments,-whitespace/indent'
+for file in $(git diff-index --name-status $against -- | grep -E '\.(h|cc|cpp)$' | awk '{print $2}'); do
   echo ${file}
+  ${cpplint_cmd} --linelength=128 --filter="${cpplint_filters}" ${file}
+  sum=$(expr ${sum} + $?)
 done
 
-for file in $(git diff-index --name-status $against -- | grep -E '^\.(h|cc|cpp)$' | awk '{print $2}'); do
-  echo ${file}
-	#$cpplint --filter=$filters $file
-  #sum=$(expr ${sum} + $?)
-done
+if [[ ${sum} -eq 0 ]]; then
+  exit 0
+else
+  exit 1
+fi

@@ -10,8 +10,8 @@
 
 BEGIN_NAMESPACE_BASE
 
-BASE_API const char * GetVersion();
-BASE_API const char * GetOsName();
-BASE_API const char * GetName();
+BASE_API const char* GetVersion();
+BASE_API const char* GetOsName();
+BASE_API const char* GetName();
 
 END_NAMESPACE_BASE

@@ -1,4 +1,10 @@
-﻿#include "webui.h"
+﻿// Created by WhitebrowSwordsman on 2022/06/19.
+//
+// Copyright (c) 2022 The CplusplusCi Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+#include "webui.h"
 
 #include <QAction>
 #include <QBoxLayout>
@@ -82,9 +88,7 @@ void Webui::OnAbout() {
 }
 
 void Webui::OnSpellChecker() {
-  using namespace webui;
-
-  WebView* view = new WebView();
+  webui::WebView* view = new webui::WebView();
   view->setAttribute(Qt::WA_DeleteOnClose);
 
   view->setUrl(QUrl(QStringLiteral("qrc:/tests/webui/index.html")));

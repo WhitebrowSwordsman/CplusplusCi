@@ -1912,9 +1912,14 @@ def CheckForHeaderGuard(filename, clean_lines, error):
   define = ''
   endif = ''
   endif_linenum = 0
+  pragma_once = False
   for linenum, line in enumerate(raw_lines):
     linesplit = line.split()
     if len(linesplit) >= 2:
+      # find #pragma once
+      if linesplit[0] == '#pragma' and linesplit[1] == 'once':
+        pragma_once = True
+        break
       # find the first occurrence of #ifndef and #define, save arg
       if not ifndef and linesplit[0] == '#ifndef':
         # set ifndef to the header guard presented on the #ifndef line.
@@ -1926,6 +1931,9 @@ def CheckForHeaderGuard(filename, clean_lines, error):
     if line.startswith('#endif'):
       endif = line
       endif_linenum = linenum
+
+  if pragma_once:
+    return
 
   if not ifndef or not define or ifndef != define:
     error(filename, 0, 'build/header_guard', 5,

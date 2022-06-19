@@ -1,3 +1,9 @@
+# Created by %username% on %date%.
+#
+# Copyright (c) %year% The %SharedlibName% Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
 cmake_minimum_required(VERSION 3.16)
 
 set(project_name template_name_app)

@@ -1,13 +1,19 @@
-﻿#include "image_test_window.h"
+﻿// Created by WhitebrowSwordsman on 2022/06/19.
+//
+// Copyright (c) 2022 The CplusplusCi Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+#include "image_test_window.h"
 
 #include <QAction>
+#include <QBoxLayout>
 #include <QCoreApplication>
 #include <QDateTime>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QPainter>
 #include <QPalette>
-#include <QBoxLayout>
 
 ImageTestWindow::ImageTestWindow(QWidget* parent /* = nullptr*/) : QWidget(parent) {
   SetupUi();
@@ -123,7 +129,8 @@ QImage TestOpenImage() {
 
 void DefaultCleanupFunc(void* cleanup_info) { delete[] static_cast<uchar*>(cleanup_info); }
 QImage OpenBGRA32ImageData(const uchar* image_data, int width, int height, QImageCleanupFunction cleanup = DefaultCleanupFunc) {
-  return QImage(image_data, width, height, QImage::Format_ARGB32, cleanup, (void*)image_data);
+  return QImage(image_data, width, height, QImage::Format_ARGB32, cleanup,
+                reinterpret_cast<void*>(const_cast<uchar*>(image_data)));
 }
 QImage TestOpenImageData() {
   constexpr const int kImageSideLength = 256;
@@ -176,16 +183,16 @@ void TestSaveImage() {
   }
 }
 
-void DrawCircleOnImage(QImage& image) {
-  QPainter painter(&image);
+void DrawCircleOnImage(QImage* image) {
+  QPainter painter(image);
   painter.setPen(QColor(Qt::red));
-  painter.drawEllipse(QRect(QPoint(0, 0), image.size()));
+  painter.drawEllipse(QRect(QPoint(0, 0), image->size()));
 }
 QImage TestDrawCircleOnImage() {
   constexpr const int kImageSideLength = 256;
   QImage cache_image(kImageSideLength, kImageSideLength, QImage::Format_ARGB32);
   cache_image.fill(Qt::transparent);
-  DrawCircleOnImage(cache_image);
+  DrawCircleOnImage(&cache_image);
   return cache_image;
 }
 

@@ -6,21 +6,20 @@
 
 #pragma once
 
-
 #if defined(BASE_COMPONENT_BUILD)
 #if defined(WIN32)
 
 #if defined(BASE_IMPLEMENTATION)
 #define BASE_EXPORT __declspec(dllexport)
-#else 
+#else
 #define BASE_EXPORT __declspec(dllimport)
 #endif  // defined(BASE_IMPLEMENTATION)
 
 #else  // defined(WIN32)
 #if defined(BASE_IMPLEMENTATION)
 #define BASE_EXPORT __attribute__((visibility("default")))
-#else 
-#define BASE_EXPORT 
+#else
+#define BASE_EXPORT
 #endif  // defined(BASE_IMPLEMENTATION)
 #endif
 
@@ -28,9 +27,7 @@
 #define BASE_EXPORT
 #endif
 
-
 #define BASE_API BASE_EXPORT
-
 
 #define BEGIN_NAMESPACE_BASE namespace base {
 #define END_NAMESPACE_BASE }
